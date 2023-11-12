@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Alegreya Sans', sans-serif;
+    }
+
+    #canvas-container {
+      width: 70%;
+      height: 100vh;
+      float: left;
+    }
+
+    #text-container {
+      width: 30%;
+      height: 100vh;
+      float: left;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h1, h2, p {
+      font-family: 'Alegreya Sans', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div id="text-container">
+    <h1>Mi Portafolio</h1>
+    <h2>Misael Vergara</h2>
+    <p>Hola, soy Misael Vergara, alumno de la Escuela de Arquitectura y Diseño de la PUCV, ingresé en 2023 y formo parte del ramo de Imagen Escrita del mismo año, sé bienvenido a mi portafolio donde contengo mis encargos.</p>
+    <a href="https://wiki.ead.pucv.cl/Misael_Vergara" target="_blank">
+      <img src="image/yo.jpg" alt="Descripción de la imagen 1">
+    </a>
+    <p>Código fuente <a href="https://www.ejemplo.com" target="_blank">aquí</a>.</p>
+
+  </div>
+
+  <script>
+    let circles = []; // Arreglo para almacenar las partículas
+    let colorChangeSpeed = 1; // Velocidad de cambio de color
+    let textSizeIncrease = 10; // Aumento del tamaño del texto
+    let tempSizeIncrease = 0; // Aumento temporal del tamaño
+
+    function setup() {
+      let canvas = createCanvas(windowWidth * 0.7, windowHeight);
+      canvas.parent('canvas-container');
+
+      // Crear partículas iniciales
+      for (let i = 0; i < 50; i++) {
+        let x = random(width);
+        let y = random(height);
+        let radius = 20;
+        let speedX = random(-1, 1);
+        let speedY = random(-1, 1);
+        let hue = random(0, 360);
+        let circle = { x, y, radius, speedX, speedY, hue, isTextCircle: false };
+        circles.push(circle);
+      }
+
+      // Crear círculos adicionales con cuadros de texto y enlaces distintos
+      let links = [
+        "https://makomv.github.io/imagen-escrita/",
+        "https://makomv.github.io/circulos-espontaneos/",
+        "https://makomv.github.io/triangulatorio/",
+        "https://makomv.github.io/cresciente-verde/",
+        "https://makomv.github.io/pescados-consumidos/",
+        "https://makomv.github.io/progresion-de-luz/"
+      ];
+
+      for (let i = 0; i < 6; i++) {
+        let x = random(width);
+        let y = random(height);
+        let radius = 50;
+        let speedX = random(-1, 1);
+        let speedY = random(-1, 1);
+        let textContent = "Encargo " + (i + 1);
+        let textColor = color(255); // Color del texto (blanco)
+        let link = links[i];
+        let circle = { x, y, radius, speedX, speedY, textContent, textColor, isTextCircle: true, link };
+        circles.push(circle);
+      }
+    }
+
+    function draw() {
+      background(160, 82, 45);
+      
+      // Dibujar las líneas verticales para simular tablas de madera
+      let numTablas = 10;
+      let tablaWidth = width / numTablas;
+
+      for (let i = 0; i < numTablas; i++) {
+        let x = i * tablaWidth;
+
+        stroke(139, 69, 19);
+        strokeWeight(4);
+        line(x, 0, x, height);
+      }
+
+      // Actualizar y dibujar las partículas (círculos)
+      for (let i = 0; i < circles.length; i++) {
+        let circle = circles[i];
+
+        // Verificar si el puntero está sobre el círculo
+        let d = dist(mouseX, mouseY, circle.x, circle.y);
+        let isMouseOverCircle = d < circle.radius / 2;
+
+        // Aumentar temporalmente el tamaño al posicionar el puntero sobre el círculo con texto
+        if (isMouseOverCircle && circle.isTextCircle) {
+          tempSizeIncrease = textSizeIncrease/2;
+        } else {
+          tempSizeIncrease = 0;
+        }
+
+        // Detener el movimiento y aumentar el tamaño al posicionar el puntero sobre el círculo
+        if (isMouseOverCircle && circle.isTextCircle) {
+          // No cambia la velocidad ni el tamaño
+        } else {
+          // Continuar el movimiento y tamaño normal
+          circle.x += circle.speedX;
+          circle.y += circle.speedY;
+          circle.radius = circle.isTextCircle ? 50 + tempSizeIncrease : 20;
+        }
+
+        // Rebotar las partículas en los bordes del canvas
+        if (circle.x < 0 || circle.x > width) {
+          circle.speedX *= -1;
+        }
+        if (circle.y < 0 || circle.y > height) {
+          circle.speedY *= -1;
+        }
+
+        // Cambiar gradualmente el color de los círculos
+        if (circle.hue !== undefined) {
+          circle.hue += colorChangeSpeed;
+          if (circle.hue > 360) {
+            circle.hue = 0;
+          }
+
+          // Convertir el valor de hue en un color
+          let fillColor = color(circle.hue, 100, 100);
+          // Aplicar el color al círculo
+          fill(fillColor);
+          // Dibujar el círculo
+          noStroke();
+          ellipse(circle.x, circle.y, circle.radius);
+        }
+
+        // Verificar si es un círculo con texto
+        if (circle.textContent !== undefined) {
+          fill(circle.textColor);
+          noStroke();
+          ellipse(circle.x, circle.y, circle.radius);
+          textAlign(CENTER, CENTER);
+          textSize(14 + tempSizeIncrease);
+          fill(0); // Color del texto (negro)
+          text(circle.textContent, circle.x, circle.y);
+        }
+
+        // Verificar si es un círculo con enlace
+        if (circle.link !== undefined) {
+          let linkD = dist(mouseX, mouseY, circle.x, circle.y);
+          let isMouseOverLinkCircle = linkD < circle.radius / 2;
+          
+          if (isMouseOverLinkCircle) {
+            cursor(HAND);
+          } else {
+            cursor(ARROW);
+          }
+        }
+      }
+    }
+
+    function mouseClicked() {
+      for (let i = 0; i < circles.length; i++) {
+        let circle = circles[i];
+        let d = dist(mouseX, mouseY, circle.x, circle.y);
+        let isMouseOverCircle = d < circle.radius / 2;
+
+        if (isMouseOverCircle && circle.link !== undefined) {
+          window.open(circle.link, '_blank'); // Abrir el enlace en una nueva pestaña/tabla
+        }
+      }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth * 0.7, windowHeight);
+    }
+  </script>
+</body>
+</html>
